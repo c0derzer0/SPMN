@@ -52,7 +52,7 @@ Pre-process data
                    util_to_bin = False )
                  
     from spn.io.Graphics import plot_spn
-    plot_spn(spmn, "ds6.pdf", feature_labels=['SS', 'LBF', 'IBF', 'RO', 'RC'])
+    plot_spn(spmn, "computer_diagonistic.pdf", feature_labels=['SS', 'LBF', 'IBF', 'RO', 'RC'])
 ```    
     
 We can calculate maximum expected utility of test data and return the best decision at each decision node
