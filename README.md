@@ -46,6 +46,8 @@ Pre-process data
 
     train_data = df.values
 ```
+Learn Structure
+
 ```python
     from spn.algorithms.SPMN import learn_spmn
     spmn = SPMN.learn_spmn(train_data , partial_order , decision_nodes, utility_node , var_set,
