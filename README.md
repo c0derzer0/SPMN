@@ -4,7 +4,7 @@ SPMN module of SPFlow library implements the structure learning algorithm for Su
 
 ## Getting Started
 
-See [SPFlow](https://github.com/SPFlow/SPFlow) for installation instructions of SPFlow library
+Use the forked version of SPFlow[https://github.com/c0derzer0/SPFlow] for installation. Branch spmn of the forked version contains the latest updates.
 
 ## Using SPMN Module
 
