@@ -10,6 +10,7 @@ Use the forked version of SPFlow [https://github.com/c0derzer0/SPFlow] for insta
 
 ## Using SPMN Module
 
+#### Sample Dataset
 Look at *spmn/data* folder for a list of sample datasets to use with spmn structure learning algorithm. 
 *spmn/meta_data* contains information about 
 *partial order, decision nodes, utility node, feature_names, meta_types* for each of the data sets.
@@ -17,7 +18,8 @@ Look at *spmn/data* folder for a list of sample datasets to use with spmn struct
 import pandas as pd    
 csv_path = "Dataset5/Computer_diagnostician.tsv"
 df = pd.DataFrame.from_csv(csv_path, sep='\t')
- ```
+```
+#### Provide initial parameters
 Provide *partial order, decision nodes, utility node, feature_names, meta_types* for the dataset
 ```python
 partial_order = [['System_State'], ['Rework_Decision'],
@@ -32,7 +34,8 @@ from spn.structure.StatisticalTypes import MetaType
 # Utility variable is the last variable. Other variables are of discrete type
 meta_types = [MetaType.DISCRETE]*5+[MetaType.UTILITY]  
 ```
-Pre-process data. This is not required if the data is a numpy ndarray ordered according to partial order
+#### Pre-process data
+This is not required if the data is a numpy ndarray ordered according to partial order
 ```python
 from spn.algorithms.SPMNDataUtil import align_data
 import numpy as np
@@ -49,7 +52,7 @@ df = pd.concat([df_without_utility_categorical, df_utility], axis=1, sort=False)
 
 train_data = df.values
 ```
-To learn the structure of SPMN 
+#### Learn the structure of SPMN 
 
 ```python
 from spn.algorithms.SPMN import learn_spmn
@@ -58,14 +61,14 @@ spmn = SPMN(partial_order , decision_nodes, utility_node, feature_names,
             util_to_bin = False)
 spmn_structure = spmn.learn_spmn(train_data)    
 ```
-We can plot the learned spmn 
+#### Plot the learned SPMN
 ```python
 from spn.io.Graphics import plot_spn
 plot_spn(spmn_structure, "computer_diagonistic.pdf", feature_labels=['SS', 'DD', 'LBF', 'IBF', 'RO', 'RC'])
 ```
 
     
-We can calculate maximum expected utility of test data and return the best decision at each decision node
+#### Calculate Maximum Expected Utility from the learned SPMN
 ```python
 from spn.algorithms.MEU import meu
 test_data = [[np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]]
@@ -75,6 +78,7 @@ The output for meu
 ```python
 [242.90708442]
 ```
+#### Additional functionality
 We can convert utility variable to binary random variable using cooper transformation
 ```python  
 from spn.algorithms.SPMNDataUtil import cooper_tranformation
