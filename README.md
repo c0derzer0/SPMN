@@ -21,10 +21,12 @@ df = pd.DataFrame.from_csv(csv_path, sep='\t')
 Provide *partial order, decision nodes, utility node, feature_names, meta_types* for the dataset
 ```python
 partial_order = [['System_State'], ['Rework_Decision'],
-                 ['Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost']]
+                 ['Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 
+                 'Rework_Cost']]
 utility_node = ['Rework_Cost']
 decision_nodes = ['Rework_Decision']
-feature_names = ['System_State', 'Rework_Decision', 'Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost' ]
+feature_names = ['System_State', 'Rework_Decision', 'Logic_board_fail', 
+                'IO_board_fail', 'Rework_Outcome', 'Rework_Cost']
 
 from spn.structure.StatisticalTypes import MetaType
 # Utility variable is the last variable. Other variables are of discrete type
@@ -35,13 +37,13 @@ Pre-process data. This is not required if the data is a numpy ndarray ordered ac
 from spn.algorithms.SPMNDataUtil import align_data
 import numpy as np
 
-df1, column_titles = align_data(df, partial_order)  #aligns data in partial order sequence
+df1, column_titles = align_data(df, partial_order)  # aligns data in partial order sequence
 col_ind = column_titles.index(utility_node[0]) 
 
 df_without_utility = df1.drop(df1.columns[col_ind], axis=1)
 from sklearn.preprocessing import LabelEncoder
-df_without_utility_categorical = df_without_utility.apply(
-    LabelEncoder().fit_transform)  # transform categorical string values to categorical numerical values
+# transform categorical string values to categorical numerical values
+df_without_utility_categorical = df_without_utility.apply(LabelEncoder().fit_transform)  
 df_utility = df1.iloc[:, col_ind]
 df = pd.concat([df_without_utility_categorical, df_utility], axis=1, sort=False)
 
