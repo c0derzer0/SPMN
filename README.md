@@ -1,86 +1,92 @@
 # SPMN 
 
-SPMN module of SPFlow library implements the structure learning algorithm for Sum-Product-Max Networks(**SPMN**) which generalise Sum-Product Networks(**SPN**) for the class of decison-making problems.
+SPMN module of SPFlow library implements the structure learning algorithm and 
+claculates MEU on the learned structure for Sum-Product-Max Networks(**SPMN**)
+which generalise Sum-Product Networks(**SPN**) for the class of decison-making problems.
 
 ## Getting Started
 
-Use the forked version of SPFlow[https://github.com/c0derzer0/SPFlow] for installation. Branch spmn of the forked version contains the latest updates.
+Use the forked version of SPFlow [https://github.com/c0derzer0/SPFlow] for installation.
 
 ## Using SPMN Module
 
-Look at *spmn/data* folder for a list of sample datasets to use with spmn structure learning algorithm. *spmn/meta_data* contains information about *partial order, decision nodes, utility node* for each of the data sets.
+Look at *spmn/data* folder for a list of sample datasets to use with spmn structure learning algorithm. 
+*spmn/meta_data* contains information about 
+*partial order, decision nodes, utility node, feature_names, meta_types* for each of the data sets.
 ```python
-    import pandas as pd    
-    csv_path = "Dataset5/Computer_diagnostician.tsv"
-    df = pd.DataFrame.from_csv(csv_path, sep='\t')
+import pandas as pd    
+csv_path = "Dataset5/Computer_diagnostician.tsv"
+df = pd.DataFrame.from_csv(csv_path, sep='\t')
  ```
-Provide *partial order, decision nodes, utility node* for the dataset
+Provide *partial order, decision nodes, utility node, feature_names, meta_types* for the dataset
 ```python
-    partial_order = [['System_State'], ['Rework_Decision'],
-                     ['Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost']]
-    utility_node = ['Rework_Cost']
-    decision_nodes = ['Rework_Decision']
-```
-var_set is list of all variables in sequence of partial order excluding decison variables
-```python
-    var_set = [var for var_set in partial_order for var in var_set]
-    for d in decision_nodes:
-        var_set.remove(d)
- 
-     #var_set = ['System_State','Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost' ]
-```
-Pre-process data 
-```python
-    from spn.algorithms.SPMNDataUtil import align_data
-    import numpy as np
-    
-    df1, column_titles = align_data(df, partial_order)  #aligns data in partial order sequence
-    col_ind = column_titles.index(utility_node[0]) 
-    
-    df_without_utility = df1.drop(df1.columns[col_ind], axis=1)
-    from sklearn.preprocessing import LabelEncoder
-    df_without_utility_categorical = df_without_utility.apply(
-        LabelEncoder().fit_transform)  # transform categorical string values to categorical numerical values
-    df_utility = df1.iloc[:, col_ind]
-    df = pd.concat([df_without_utility_categorical, df_utility], axis=1, sort=False)
+partial_order = [['System_State'], ['Rework_Decision'],
+                 ['Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost']]
+utility_node = ['Rework_Cost']
+decision_nodes = ['Rework_Decision']
+feature_names = ['System_State', 'Rework_Decision', 'Logic_board_fail', 'IO_board_fail', 'Rework_Outcome', 'Rework_Cost' ]
 
-    train_data = df.values
+from spn.structure.StatisticalTypes import MetaType
+# Utility variable is the last variable. Other variables are of discrete type
+meta_types = [MetaType.DISCRETE]*5+[MetaType.UTILITY]  
 ```
-Learn Structure
+Pre-process data. This is not required if the data is a numpy ndarray ordered according to partial order
+```python
+from spn.algorithms.SPMNDataUtil import align_data
+import numpy as np
+
+df1, column_titles = align_data(df, partial_order)  #aligns data in partial order sequence
+col_ind = column_titles.index(utility_node[0]) 
+
+df_without_utility = df1.drop(df1.columns[col_ind], axis=1)
+from sklearn.preprocessing import LabelEncoder
+df_without_utility_categorical = df_without_utility.apply(
+    LabelEncoder().fit_transform)  # transform categorical string values to categorical numerical values
+df_utility = df1.iloc[:, col_ind]
+df = pd.concat([df_without_utility_categorical, df_utility], axis=1, sort=False)
+
+train_data = df.values
+```
+To learn the structure of SPMN 
 
 ```python
-    from spn.algorithms.SPMN import learn_spmn
-    spmn = SPMN.learn_spmn(train_data , partial_order , decision_nodes, utility_node , var_set,
-                   util_to_bin = False )
-                 
-    from spn.io.Graphics import plot_spn
-    plot_spn(spmn, "computer_diagonistic.pdf", feature_labels=['SS', 'LBF', 'IBF', 'RO', 'RC'])
-```    
+from spn.algorithms.SPMN import learn_spmn
+spmn = SPMN(partial_order , decision_nodes, utility_node, feature_names, 
+            meta_types, cluster_by_curr_information_set=True,
+            util_to_bin = False)
+spmn_structure = spmn.learn_spmn(train_data)    
+```
+We can plot the learned spmn 
+```python
+from spn.io.Graphics import plot_spn
+plot_spn(spmn_structure, "computer_diagonistic.pdf", feature_labels=['SS', 'DD', 'LBF', 'IBF', 'RO', 'RC'])
+```
+
     
 We can calculate maximum expected utility of test data and return the best decision at each decision node
 ```python
-    from spn.algorithms.MEU import meu
-    
-    #test data - only include random variables and utility variable, exclude decision variables
-    test_data = np.array([[  0., 1., 0., 1., 175.],[  0., 1., 1., 0., 300.]]) 
-    meu, decisions = meu(spmn, test_data1.astype(float) ))
+from spn.algorithms.MEU import meu
+test_data = [[np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]]
+meu = meu(spmn_structure, test_data)
 ```    
-The output for meu and decisions is:
-
-    [0.69962597, 0.07494787]
-    {'Rework_Decision': array([[0, 1],[1, 0]])}  #decision for 0th instance is '1' and 1st instance is '0'
-    
+The output for meu
+```python
+[242.90708442]
+```
 We can convert utility variable to binary random variable using cooper transformation
 ```python  
-    from spn.algorithms.SPMNDataUtil import cooper_tranformation
-    bin_data = cooper_tranformation(train_data, col_ind)   #col_ind is index of utility variable in train data
-    spmn = learn_spmn(bin_data , partial_order , decision_nodes, utility_node , var_set,
-                   util_to_bin = True )
+from spn.algorithms.SPMNDataUtil import cooper_tranformation
+# col_ind is index of utility variable in train data
+train_data_with_bin_utility = cooper_tranformation(train_data, col_ind)   
+spmn = SPMN(partial_order , decision_nodes, utility_node, feature_names, 
+        meta_types, cluster_by_curr_information_set=True,
+        util_to_bin = False)
+spmn_structure = spmn.learn_spmn(train_data_with_bin_utility) 
 ```
 ## Papers implemented
 * Mazen Melibari, Pascal Poupart, Prashant Doshi. "Sum-Product-Max Networks for Tractable Decision Making". In Proceedings of the Twenty-Fifth International Joint Conference on Artificial Intelligence, 2016.
 
 ### Limitations
-* works with categorical variables and one utility node. Utility node can be real valued
+* Does not return decions values yet
     
 
