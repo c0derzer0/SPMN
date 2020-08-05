@@ -92,7 +92,5 @@ spmn_structure = spmn.learn_spmn(train_data_with_bin_utility)
 ## Papers implemented
 * Mazen Melibari, Pascal Poupart, Prashant Doshi. "Sum-Product-Max Networks for Tractable Decision Making". In Proceedings of the Twenty-Fifth International Joint Conference on Artificial Intelligence, 2016.
 
-### Limitations
-* Does not return decions values yet
     
 
